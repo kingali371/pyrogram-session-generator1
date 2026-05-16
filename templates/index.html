@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد وإدارة جلسات Pyrogram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+            font-weight: bold;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        button.danger {
+            background: #e53e3e;
+        }
+        
+        button.danger:hover {
+            background: #c53030;
+        }
+        
+        button.success {
+            background: #48bb78;
+        }
+        
+        button.success:hover {
+            background: #38a169;
+        }
+        
+        .session-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .session-item {
+            background: #f7fafc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .session-item:hover {
+            background: #edf2f7;
+            transform: translateX(-5px);
+        }
+        
+        .session-name {
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 16px;
+        }
+        
+        .session-date {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-right: 4px solid #48bb78;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-right: 4px solid #e53e3e;
+        }
+        
+        .session-string {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+            margin-top: 15px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 مولد وإدارة جلسات Pyrogram</h1>
+            <p>توليد، حفظ، وتصدير جلسات Pyrogram بشكل آمن ومشفر</p>
+        </div>
+        
+        <div class="grid">
+            <!-- قسم إنشاء جلسة جديدة -->
+            <div class="card">
+                <h2>🌟 إنشاء جلسة جديدة</h2>
+                <div id="generateAlert"></div>
+                <form id="generateForm">
+                    <div class="form-group">
+                        <label>🏷️ اسم الجلسة</label>
+                        <input type="text" id="sessionName" required placeholder="مثال: جلسة_حسابي">
+                    </div>
+                    <div class="form-group">
+                        <label>🔑 API ID</label>
+                        <input type="number" id="apiId" required placeholder="من my.telegram.org">
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 API HASH</label>
+                        <input type="text" id="apiHash" required placeholder="من my.telegram.org">
+                    </div>
+                    <div class="form-group">
+                        <label>📝 ملاحظات (اختياري)</label>
+                        <textarea id="notes" rows="2" placeholder="أي ملاحظات إضافية"></textarea>
+                    </div>
+                    <button type="submit" class="success">✨ إنشاء الجلسة</button>
+                </form>
+                <div id="generatedSession" style="display:none;">
+                    <div class="session-string" id="sessionString"></div>
+                    <button onclick="copySession()">📋 نسخ النص</button>
+                </div>
+            </div>
+            
+            <!-- قسم الجلسات المحفوظة -->
+            <div class="card">
+                <h2>📚 الجلسات المحفوظة</h2>
+                <div id="sessionsList" class="session-list">
+                    <p style="text-align: center; color: #a0aec0;">جاري التحميل...</p>
+                </div>
+            </div>
+            
+            <!-- قسم تصدير الجلسات -->
+            <div class="card">
+                <h2>💾 تصدير جلسة</h2>
+                <div class="form-group">
+                    <label>اختر الجلسة</label>
+                    <select id="exportSessionSelect">
+                        <option value="">-- اختر جلسة --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر صيغة التصدير</label>
+                    <select id="exportFormat">
+                        <option value="json">JSON</option>
+                        <option value="python">Python Code</option>
+                        <option value="base64">Base64</option>
+                        <option value="env">Environmental Variables (.env)</option>
+                        <option value="txt">TXT Text</option>
+                        <option value="html">HTML Page</option>
+                    </select>
+                </div>
+                <button onclick="exportSession()">💾 تصدير</button>
+                <div id="exportResult"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3>تفاصيل الجلسة</h3>
+            <div id="modalContent"></div>
+            <button onclick="closeModal()">إغلاق</button>
+        </div>
+    </div>
+    
+    <script>
+        // تحميل الجلسات عند بدء التشغيل
+        loadSessions();
+        
+        // تحديث قائمة الجلسات كل 5 ثواني
+        setInterval(loadSessions, 5000);
+        
+        function loadSessions() {
+            fetch('/api/sessions')
+                .then(response => response.json())
+                .then(sessions => {
+                    const listDiv = document.getElementById('sessionsList');
+                    const select = document.getElementById('exportSessionSelect');
+                    
+                    if (sessions.length === 0) {
+                        listDiv.innerHTML = '<p style="text-align: center; color: #a0aec0;">📭 لا توجد جلسات محفوظة</p>';
+                        select.innerHTML = '<option value="">-- لا توجد جلسات --</option>';
+                        return;
+                    }
+                    
+                    // عرض القائمة
+                    listDiv.innerHTML = '';
+                    sessions.forEach(session => {
+                        const item = document.createElement('div');
+                        item.className = 'session-item';
+                        item.onclick = () => showSessionDetails(session.name);
+                        item.innerHTML = `
+                            <div class="session-name">📌 ${session.name}</div>
+                            <div class="session-date">📅 ${session.created}</div>
+                            <div class="session-date">🔄 استخدمت ${session.usage_count || 0} مرة</div>
+                        `;
+                        listDiv.appendChild(item);
+                    });
+                    
+                    // تحديث القائمة المنسدلة
+                    select.innerHTML = '<option value="">-- اختر جلسة --</option>';
+                    sessions.forEach(session => {
+                        const option = document.createElement('option');
+                        option.value = session.name;
+                        option.textContent = session.name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading sessions:', error);
+                    document.getElementById('sessionsList').innerHTML = 
+                        '<p style="text-align: center; color: #e53e3e;">❌ خطأ في تحميل الجلسات</p>';
+                });
+        }
+        
+        function showSessionDetails(name) {
+            fetch(`/api/sessions/${name}`)
+                .then(response => response.json())
+                .then(session => {
+                    const modalContent = document.getElementById('modalContent');
+                    modalContent.innerHTML = `
+                        <p><strong>📝 الاسم:</strong> ${session.name}</p>
+                        <p><strong>📅 تاريخ الإنشاء:</strong> ${session.created}</p>
+                        <p><strong>🕒 آخر استخدام:</strong> ${session.last_used || 'لم يستخدم بعد'}</p>
+                        <p><strong>🔄 عدد مرات الاستخدام:</strong> ${session.usage_count}</p>
+                    `;
+                    document.getElementById('modal').style.display = 'flex';
+                });
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        document.getElementById('generateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('sessionName').value,
+                api_id: document.getElementById('apiId').value,
+                api_hash: document.getElementById('apiHash').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    document.getElementById('generateAlert').innerHTML = 
+                        '<div class="alert alert-success">✅ ' + result.message + '</div>';
+                    document.getElementById('generatedSession').style.display = 'block';
+                    document.getElementById('sessionString').innerHTML = result.session_string;
+                    document.getElementById('generateForm').reset();
+                    loadSessions();
+                    
+                    setTimeout(() => {
+                        document.getElementById('generateAlert').innerHTML = '';
+                    }, 3000);
+                } else {
+                    document.getElementById('generateAlert').innerHTML = 
+                        '<div class="alert alert-error">❌ ' + result.error + '</div>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('generateAlert').innerHTML = 
+                    '<div class="alert alert-error">❌ خطأ: ' + error + '</div>';
+            });
+        });
+        
+        function exportSession() {
+            const name = document.getElementById('exportSessionSelect').value;
+            const format = document.getElementById('exportFormat').value;
+            
+            if (!name) {
+                alert('الرجاء اختيار جلسة للتصدير');
+                return;
+            }
+            
+            fetch(`/api/export/${name}/${format}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('exportResult').innerHTML = `
+                        <div class="alert alert-success">✅ تم التصدير بنجاح!</div>
+                        <pre style="background:#f7fafc;padding:10px;border-radius:8px;overflow-x:auto;max-height:200px;">${data.substring(0, 500)}${data.length > 500 ? '...' : ''}</pre>
+                        <button onclick="downloadExport('${name}', '${format}', \`${data.replace(/`/g, '\\`')}\`)">💾 تحميل الملف</button>
+                    `;
+                })
+                .catch(error => {
+                    document.getElementById('exportResult').innerHTML = 
+                        '<div class="alert alert-error">❌ خطأ في التصدير: ' + error + '</div>';
+                });
+        }
+        
+        function downloadExport(name, format, data) {
+            let extension = '';
+            let mimeType = 'text/plain';
+            
+            switch(format) {
+                case 'json': extension = '.json'; mimeType = 'application/json'; break;
+                case 'python': extension = '.py'; mimeType = 'text/x-python'; break;
+                case 'env': extension = '.env'; break;
+                case 'html': extension = '.html'; mimeType = 'text/html'; break;
+                default: extension = '.txt';
+            }
+            
+            const blob = new Blob([data], {type: mimeType});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}${extension}`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+        
+        function copySession() {
+            const text = document.getElementById('sessionString').innerText;
+            navigator.clipboard.writeText(text);
+            alert('✅ تم نسخ نص الجلسة!');
+        }
+    </script>
+</body>
+</html>
